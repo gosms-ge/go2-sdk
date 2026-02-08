@@ -1,0 +1,144 @@
+syntax = "proto3";
+
+package integrations.v1;
+
+option go_package = "github.com/go2-link/backend/pkg/pb/integrations/v1;integrationsv1";
+
+import "google/protobuf/timestamp.proto";
+
+// IntegrationService handles third-party integration management
+service IntegrationService {
+  // List all integrations for the authenticated user
+  rpc ListIntegrations(ListIntegrationsRequest) returns (ListIntegrationsResponse);
+
+  // Create a new integration
+  rpc CreateIntegration(CreateIntegrationRequest) returns (Integration);
+
+  // Get a specific integration by ID
+  rpc GetIntegration(GetIntegrationRequest) returns (Integration);
+
+  // Update an existing integration
+  rpc UpdateIntegration(UpdateIntegrationRequest) returns (Integration);
+
+  // Delete an integration
+  rpc DeleteIntegration(DeleteIntegrationRequest) returns (DeleteIntegrationResponse);
+
+  // Test an integration by sending a test notification
+  rpc TestIntegration(TestIntegrationRequest) returns (TestIntegrationResponse);
+
+  // Get available integration types and events
+  rpc GetIntegrationTypes(GetIntegrationTypesRequest) returns (GetIntegrationTypesResponse);
+}
+
+// Integration types
+enum IntegrationType {
+  INTEGRATION_TYPE_UNSPECIFIED = 0;
+  INTEGRATION_TYPE_SLACK = 1;
+  INTEGRATION_TYPE_DISCORD = 2;
+  INTEGRATION_TYPE_TELEGRAM = 3;
+  INTEGRATION_TYPE_SEGMENT = 4;
+  INTEGRATION_TYPE_ZAPIER = 5;
+}
+
+// Integration represents a third-party integration
+message Integration {
+  string id = 1;
+  string user_id = 2;
+  IntegrationType type = 3;
+  string name = 4;
+  IntegrationConfig config = 5;
+  repeated string events = 6;
+  bool is_active = 7;
+  optional google.protobuf.Timestamp last_triggered_at = 8;
+  int32 trigger_count = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+// IntegrationConfig holds type-specific configuration
+message IntegrationConfig {
+  // Slack/Discord/Zapier
+  string webhook_url = 1;
+  string channel = 2;
+
+  // Telegram
+  string bot_token = 3;
+  string chat_id = 4;
+
+  // Segment
+  string write_key = 5;
+}
+
+// List integrations
+message ListIntegrationsRequest {}
+
+message ListIntegrationsResponse {
+  repeated Integration integrations = 1;
+}
+
+// Create integration
+message CreateIntegrationRequest {
+  IntegrationType type = 1;
+  string name = 2;
+  IntegrationConfig config = 3;
+  repeated string events = 4;
+}
+
+// Get integration
+message GetIntegrationRequest {
+  string id = 1;
+}
+
+// Update integration
+message UpdateIntegrationRequest {
+  string id = 1;
+  optional string name = 2;
+  optional IntegrationConfig config = 3;
+  repeated string events = 4;
+  optional bool is_active = 5;
+}
+
+// Delete integration
+message DeleteIntegrationRequest {
+  string id = 1;
+}
+
+message DeleteIntegrationResponse {
+  bool success = 1;
+}
+
+// Test integration
+message TestIntegrationRequest {
+  string id = 1;
+}
+
+message TestIntegrationResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Get integration types
+message GetIntegrationTypesRequest {}
+
+message GetIntegrationTypesResponse {
+  repeated IntegrationTypeInfo types = 1;
+  repeated string events = 2;
+}
+
+message IntegrationTypeInfo {
+  IntegrationType type = 1;
+  string name = 2;
+  string description = 3;
+  string icon = 4;
+  bool available = 5;
+  repeated ConfigField config_fields = 6;
+}
+
+message ConfigField {
+  string name = 1;
+  string label = 2;
+  string field_type = 3;
+  bool required = 4;
+  string placeholder = 5;
+  string help_text = 6;
+}

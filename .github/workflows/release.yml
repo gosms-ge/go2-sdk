@@ -51,9 +51,6 @@ jobs:
         working-directory: typescript
         run: npm install
 
-      - name: Generate proto
-        run: ./scripts/generate-typescript.sh
-
       - name: Build
         working-directory: typescript
         run: npm run build

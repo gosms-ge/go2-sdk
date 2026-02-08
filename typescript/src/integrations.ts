@@ -1,14 +1,28 @@
 import * as grpc from '@grpc/grpc-js';
+import * as protoLoader from '@grpc/proto-loader';
+import * as path from 'path';
 import { wrapError } from './errors';
 import type {
   Integration,
-  IntegrationType,
-  IntegrationConfig,
   CreateIntegrationParams,
   UpdateIntegrationParams,
   TestIntegrationResponse,
   GetIntegrationTypesResponse,
 } from './types';
+
+// Load proto file
+const PROTO_PATH = path.join(__dirname, '../proto/integrations/v1/integrations.proto');
+
+const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
+  keepCase: false,
+  longs: String,
+  enums: Number,
+  defaults: true,
+  oneofs: true,
+});
+
+const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any;
+const IntegrationServiceClient = protoDescriptor.integrations.v1.IntegrationService;
 
 /**
  * Service for managing integrations.
@@ -21,9 +35,6 @@ export class IntegrationsService {
     credentials: grpc.ChannelCredentials,
     options: grpc.ClientOptions
   ) {
-    // Dynamic import of generated client
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { IntegrationServiceClient } = require('./gen/integrations/v1/integrations_grpc_pb');
     this.client = new IntegrationServiceClient(endpoint, credentials, options);
   }
 
@@ -31,17 +42,14 @@ export class IntegrationsService {
    * List all integrations.
    */
   async list(): Promise<Integration[]> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { ListIntegrationsRequest } = require('./gen/integrations/v1/integrations_pb');
-
     return new Promise((resolve, reject) => {
       this.client.listIntegrations(
-        new ListIntegrationsRequest(),
+        {},
         (err: grpc.ServiceError | null, response: any) => {
           if (err) {
             reject(wrapError(err));
           } else {
-            resolve(response?.getIntegrationsList() || []);
+            resolve(this.mapIntegrations(response?.integrations || []));
           }
         }
       );
@@ -52,22 +60,20 @@ export class IntegrationsService {
    * Create a new integration.
    */
   async create(params: CreateIntegrationParams): Promise<Integration> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { CreateIntegrationRequest, IntegrationConfig } = require('./gen/integrations/v1/integrations_pb');
-
-    const request = new CreateIntegrationRequest();
-    request.setType(params.type);
-    request.setName(params.name);
-    request.setEventsList(params.events);
+    const request: any = {
+      type: params.type,
+      name: params.name,
+      events: params.events,
+    };
 
     if (params.config) {
-      const config = new IntegrationConfig();
-      if (params.config.webhookUrl) config.setWebhookUrl(params.config.webhookUrl);
-      if (params.config.channel) config.setChannel(params.config.channel);
-      if (params.config.botToken) config.setBotToken(params.config.botToken);
-      if (params.config.chatId) config.setChatId(params.config.chatId);
-      if (params.config.writeKey) config.setWriteKey(params.config.writeKey);
-      request.setConfig(config);
+      request.config = {
+        webhookUrl: params.config.webhookUrl,
+        channel: params.config.channel,
+        botToken: params.config.botToken,
+        chatId: params.config.chatId,
+        writeKey: params.config.writeKey,
+      };
     }
 
     return new Promise((resolve, reject) => {
@@ -77,7 +83,7 @@ export class IntegrationsService {
           if (err) {
             reject(wrapError(err));
           } else {
-            resolve(response);
+            resolve(this.mapIntegration(response));
           }
         }
       );
@@ -88,20 +94,14 @@ export class IntegrationsService {
    * Get an integration by ID.
    */
   async get(id: string): Promise<Integration> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { GetIntegrationRequest } = require('./gen/integrations/v1/integrations_pb');
-
-    const request = new GetIntegrationRequest();
-    request.setId(id);
-
     return new Promise((resolve, reject) => {
       this.client.getIntegration(
-        request,
+        { id },
         (err: grpc.ServiceError | null, response: any) => {
           if (err) {
             reject(wrapError(err));
           } else {
-            resolve(response);
+            resolve(this.mapIntegration(response));
           }
         }
       );
@@ -112,24 +112,20 @@ export class IntegrationsService {
    * Update an integration.
    */
   async update(id: string, params: UpdateIntegrationParams): Promise<Integration> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { UpdateIntegrationRequest, IntegrationConfig } = require('./gen/integrations/v1/integrations_pb');
+    const request: any = { id };
 
-    const request = new UpdateIntegrationRequest();
-    request.setId(id);
-
-    if (params.name !== undefined) request.setName(params.name);
-    if (params.events !== undefined) request.setEventsList(params.events);
-    if (params.isActive !== undefined) request.setIsActive(params.isActive);
+    if (params.name !== undefined) request.name = params.name;
+    if (params.events !== undefined) request.events = params.events;
+    if (params.isActive !== undefined) request.isActive = params.isActive;
 
     if (params.config) {
-      const config = new IntegrationConfig();
-      if (params.config.webhookUrl) config.setWebhookUrl(params.config.webhookUrl);
-      if (params.config.channel) config.setChannel(params.config.channel);
-      if (params.config.botToken) config.setBotToken(params.config.botToken);
-      if (params.config.chatId) config.setChatId(params.config.chatId);
-      if (params.config.writeKey) config.setWriteKey(params.config.writeKey);
-      request.setConfig(config);
+      request.config = {
+        webhookUrl: params.config.webhookUrl,
+        channel: params.config.channel,
+        botToken: params.config.botToken,
+        chatId: params.config.chatId,
+        writeKey: params.config.writeKey,
+      };
     }
 
     return new Promise((resolve, reject) => {
@@ -139,7 +135,7 @@ export class IntegrationsService {
           if (err) {
             reject(wrapError(err));
           } else {
-            resolve(response);
+            resolve(this.mapIntegration(response));
           }
         }
       );
@@ -150,20 +146,14 @@ export class IntegrationsService {
    * Delete an integration.
    */
   async delete(id: string): Promise<boolean> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { DeleteIntegrationRequest } = require('./gen/integrations/v1/integrations_pb');
-
-    const request = new DeleteIntegrationRequest();
-    request.setId(id);
-
     return new Promise((resolve, reject) => {
       this.client.deleteIntegration(
-        request,
+        { id },
         (err: grpc.ServiceError | null, response: any) => {
           if (err) {
             reject(wrapError(err));
           } else {
-            resolve(response?.getSuccess() || false);
+            resolve(response?.success || false);
           }
         }
       );
@@ -174,22 +164,16 @@ export class IntegrationsService {
    * Test an integration by sending a test notification.
    */
   async test(id: string): Promise<TestIntegrationResponse> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { TestIntegrationRequest } = require('./gen/integrations/v1/integrations_pb');
-
-    const request = new TestIntegrationRequest();
-    request.setId(id);
-
     return new Promise((resolve, reject) => {
       this.client.testIntegration(
-        request,
+        { id },
         (err: grpc.ServiceError | null, response: any) => {
           if (err) {
             reject(wrapError(err));
           } else {
             resolve({
-              success: response?.getSuccess() || false,
-              message: response?.getMessage() || '',
+              success: response?.success || false,
+              message: response?.message || '',
             });
           }
         }
@@ -201,19 +185,16 @@ export class IntegrationsService {
    * Get available integration types and events.
    */
   async getTypes(): Promise<GetIntegrationTypesResponse> {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { GetIntegrationTypesRequest } = require('./gen/integrations/v1/integrations_pb');
-
     return new Promise((resolve, reject) => {
       this.client.getIntegrationTypes(
-        new GetIntegrationTypesRequest(),
+        {},
         (err: grpc.ServiceError | null, response: any) => {
           if (err) {
             reject(wrapError(err));
           } else {
             resolve({
-              types: response?.getTypesList() || [],
-              events: response?.getEventsList() || [],
+              types: response?.types || [],
+              events: response?.events || [],
             });
           }
         }
@@ -226,5 +207,31 @@ export class IntegrationsService {
    */
   close(): void {
     this.client?.close?.();
+  }
+
+  private mapIntegration(raw: any): Integration {
+    return {
+      id: raw.id,
+      userId: raw.userId,
+      type: raw.type,
+      name: raw.name,
+      config: {
+        webhookUrl: raw.config?.webhookUrl,
+        channel: raw.config?.channel,
+        botToken: raw.config?.botToken,
+        chatId: raw.config?.chatId,
+        writeKey: raw.config?.writeKey,
+      },
+      events: raw.events || [],
+      isActive: raw.isActive,
+      lastTriggeredAt: raw.lastTriggeredAt ? new Date(raw.lastTriggeredAt) : undefined,
+      triggerCount: raw.triggerCount || 0,
+      createdAt: new Date(raw.createdAt),
+      updatedAt: new Date(raw.updatedAt),
+    };
+  }
+
+  private mapIntegrations(rawList: any[]): Integration[] {
+    return rawList.map((raw) => this.mapIntegration(raw));
   }
 }

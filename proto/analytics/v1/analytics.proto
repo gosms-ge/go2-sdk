@@ -25,6 +25,7 @@ service AnalyticsService {
 // Get stats
 message GetStatsRequest {
   string link_id = 1;
+  string period = 2; // 7d, 30d, 90d
 }
 
 message GetStatsResponse {
@@ -57,6 +58,7 @@ message TimeseriesPoint {
 // Get platforms
 message GetPlatformsRequest {
   string link_id = 1;
+  string period = 2; // 7d, 30d, 90d
 }
 
 message GetPlatformsResponse {
@@ -72,6 +74,8 @@ message PlatformStats {
 // Get countries
 message GetCountriesRequest {
   string link_id = 1;
+  string period = 2; // 7d, 30d, 90d
+  int32 limit = 3;   // Max number of results
 }
 
 message GetCountriesResponse {
@@ -88,6 +92,8 @@ message CountryStats {
 // Get referrers
 message GetReferrersRequest {
   string link_id = 1;
+  string period = 2; // 7d, 30d, 90d
+  int32 limit = 3;   // Max number of results
 }
 
 message GetReferrersResponse {

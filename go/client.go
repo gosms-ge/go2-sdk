@@ -8,7 +8,19 @@
 //	}
 //	defer client.Close()
 //
-//	integrations, err := client.Integrations.List(ctx)
+//	// Create a smart link
+//	link, err := client.Links.Create(ctx, &linksv1.CreateLinkRequest{
+//	    Slug: "myapp",
+//	    Title: "My App",
+//	    IosUrl: "https://apps.apple.com/...",
+//	    AndroidUrl: "https://play.google.com/...",
+//	})
+//
+//	// Get analytics
+//	stats, err := client.Analytics.GetStats(ctx, link.Id, "7d")
+//
+//	// Generate QR code
+//	qr, err := client.QR.Generate(ctx, link.Id, 256, "png")
 package go2
 
 import (
@@ -20,7 +32,11 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
+	analyticsv1 "github.com/gosms-ge/go2-sdk/go/analytics/v1"
+	domainsv1 "github.com/gosms-ge/go2-sdk/go/domains/v1"
 	integrationsv1 "github.com/gosms-ge/go2-sdk/go/integrations/v1"
+	linksv1 "github.com/gosms-ge/go2-sdk/go/links/v1"
+	qrv1 "github.com/gosms-ge/go2-sdk/go/qr/v1"
 )
 
 const (
@@ -32,8 +48,20 @@ const (
 type Client struct {
 	conn *grpc.ClientConn
 
+	// Links provides access to the LinkService for managing smart links.
+	Links *LinksClient
+
+	// Analytics provides access to the AnalyticsService for link statistics.
+	Analytics *AnalyticsClient
+
 	// Integrations provides access to the IntegrationService.
 	Integrations *IntegrationsClient
+
+	// Domains provides access to the DomainService for custom domains.
+	Domains *DomainsClient
+
+	// QR provides access to the QRService for QR code generation.
+	QR *QRClient
 }
 
 // NewClient creates a new Go2 API client with the given options.
@@ -74,7 +102,11 @@ func NewClient(opts ...Option) (*Client, error) {
 
 	return &Client{
 		conn:         conn,
+		Links:        newLinksClient(linksv1.NewLinkServiceClient(conn)),
+		Analytics:    newAnalyticsClient(analyticsv1.NewAnalyticsServiceClient(conn)),
 		Integrations: newIntegrationsClient(integrationsv1.NewIntegrationServiceClient(conn)),
+		Domains:      newDomainsClient(domainsv1.NewDomainServiceClient(conn)),
+		QR:           newQRClient(qrv1.NewQRServiceClient(conn)),
 	}, nil
 }
 
@@ -149,6 +181,195 @@ func (c *IntegrationsClient) Test(ctx context.Context, id string) (*integrations
 // GetTypes returns all available integration types and events.
 func (c *IntegrationsClient) GetTypes(ctx context.Context) (*integrationsv1.GetIntegrationTypesResponse, error) {
 	resp, err := c.client.GetIntegrationTypes(ctx, &integrationsv1.GetIntegrationTypesRequest{})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// LinksClient provides methods for managing smart links.
+type LinksClient struct {
+	client linksv1.LinkServiceClient
+}
+
+func newLinksClient(client linksv1.LinkServiceClient) *LinksClient {
+	return &LinksClient{client: client}
+}
+
+// List returns all links for the authenticated user.
+func (c *LinksClient) List(ctx context.Context) ([]*linksv1.Link, error) {
+	resp, err := c.client.ListLinks(ctx, &linksv1.ListLinksRequest{})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp.GetLinks(), nil
+}
+
+// Create creates a new smart link.
+func (c *LinksClient) Create(ctx context.Context, req *linksv1.CreateLinkRequest) (*linksv1.Link, error) {
+	resp, err := c.client.CreateLink(ctx, req)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// Get returns a link by ID.
+func (c *LinksClient) Get(ctx context.Context, id string) (*linksv1.Link, error) {
+	resp, err := c.client.GetLink(ctx, &linksv1.GetLinkRequest{Id: id})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// Update updates a link.
+func (c *LinksClient) Update(ctx context.Context, req *linksv1.UpdateLinkRequest) (*linksv1.Link, error) {
+	resp, err := c.client.UpdateLink(ctx, req)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// Delete deletes a link.
+func (c *LinksClient) Delete(ctx context.Context, id string) error {
+	_, err := c.client.DeleteLink(ctx, &linksv1.DeleteLinkRequest{Id: id})
+	if err != nil {
+		return wrapError(err)
+	}
+	return nil
+}
+
+// CheckSlug checks if a slug is available.
+func (c *LinksClient) CheckSlug(ctx context.Context, slug string) (bool, error) {
+	resp, err := c.client.CheckSlug(ctx, &linksv1.CheckSlugRequest{Slug: slug})
+	if err != nil {
+		return false, wrapError(err)
+	}
+	return resp.GetAvailable(), nil
+}
+
+// AnalyticsClient provides methods for link analytics.
+type AnalyticsClient struct {
+	client analyticsv1.AnalyticsServiceClient
+}
+
+func newAnalyticsClient(client analyticsv1.AnalyticsServiceClient) *AnalyticsClient {
+	return &AnalyticsClient{client: client}
+}
+
+// GetStats returns overview statistics for a link.
+func (c *AnalyticsClient) GetStats(ctx context.Context, linkID string, period string) (*analyticsv1.GetStatsResponse, error) {
+	resp, err := c.client.GetStats(ctx, &analyticsv1.GetStatsRequest{LinkId: linkID, Period: period})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// GetTimeseries returns click data over time.
+func (c *AnalyticsClient) GetTimeseries(ctx context.Context, linkID string, period string) ([]*analyticsv1.TimeseriesPoint, error) {
+	resp, err := c.client.GetTimeseries(ctx, &analyticsv1.GetTimeseriesRequest{LinkId: linkID, Period: period})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp.GetPoints(), nil
+}
+
+// GetPlatforms returns click breakdown by platform.
+func (c *AnalyticsClient) GetPlatforms(ctx context.Context, linkID string, period string) ([]*analyticsv1.PlatformStats, error) {
+	resp, err := c.client.GetPlatforms(ctx, &analyticsv1.GetPlatformsRequest{LinkId: linkID, Period: period})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp.GetPlatforms(), nil
+}
+
+// GetCountries returns click breakdown by country.
+func (c *AnalyticsClient) GetCountries(ctx context.Context, linkID string, period string, limit int32) ([]*analyticsv1.CountryStats, error) {
+	resp, err := c.client.GetCountries(ctx, &analyticsv1.GetCountriesRequest{LinkId: linkID, Period: period, Limit: limit})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp.GetCountries(), nil
+}
+
+// GetReferrers returns click breakdown by referrer.
+func (c *AnalyticsClient) GetReferrers(ctx context.Context, linkID string, period string, limit int32) ([]*analyticsv1.ReferrerStats, error) {
+	resp, err := c.client.GetReferrers(ctx, &analyticsv1.GetReferrersRequest{LinkId: linkID, Period: period, Limit: limit})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp.GetReferrers(), nil
+}
+
+// DomainsClient provides methods for managing custom domains.
+type DomainsClient struct {
+	client domainsv1.DomainServiceClient
+}
+
+func newDomainsClient(client domainsv1.DomainServiceClient) *DomainsClient {
+	return &DomainsClient{client: client}
+}
+
+// List returns all custom domains for the authenticated user.
+func (c *DomainsClient) List(ctx context.Context) ([]*domainsv1.Domain, error) {
+	resp, err := c.client.ListDomains(ctx, &domainsv1.ListDomainsRequest{})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp.GetDomains(), nil
+}
+
+// Create adds a new custom domain.
+func (c *DomainsClient) Create(ctx context.Context, domain string) (*domainsv1.CreateDomainResponse, error) {
+	resp, err := c.client.CreateDomain(ctx, &domainsv1.CreateDomainRequest{Domain: domain})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// Get returns a domain by ID.
+func (c *DomainsClient) Get(ctx context.Context, id string) (*domainsv1.Domain, error) {
+	resp, err := c.client.GetDomain(ctx, &domainsv1.GetDomainRequest{Id: id})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// Verify triggers domain verification.
+func (c *DomainsClient) Verify(ctx context.Context, id string) (*domainsv1.Domain, error) {
+	resp, err := c.client.VerifyDomain(ctx, &domainsv1.VerifyDomainRequest{Id: id})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// Delete removes a custom domain.
+func (c *DomainsClient) Delete(ctx context.Context, id string) error {
+	_, err := c.client.DeleteDomain(ctx, &domainsv1.DeleteDomainRequest{Id: id})
+	if err != nil {
+		return wrapError(err)
+	}
+	return nil
+}
+
+// QRClient provides methods for QR code generation.
+type QRClient struct {
+	client qrv1.QRServiceClient
+}
+
+func newQRClient(client qrv1.QRServiceClient) *QRClient {
+	return &QRClient{client: client}
+}
+
+// Generate creates a QR code for a link.
+func (c *QRClient) Generate(ctx context.Context, req *qrv1.GenerateQRRequest) (*qrv1.GenerateQRResponse, error) {
+	resp, err := c.client.GenerateQR(ctx, req)
 	if err != nil {
 		return nil, wrapError(err)
 	}

@@ -68,11 +68,12 @@ export class AnalyticsService {
 
   /**
    * Get overview statistics for a link.
+   * @param period - "7d", "30d", or "90d"
    */
-  async getStats(linkId: string): Promise<Stats> {
+  async getStats(linkId: string, period: '7d' | '30d' | '90d' = '7d'): Promise<Stats> {
     return new Promise((resolve, reject) => {
       this.client.getStats(
-        { linkId },
+        { linkId, period },
         (err: grpc.ServiceError | null, response: any) => {
           if (err) {
             reject(wrapError(err));
@@ -120,11 +121,12 @@ export class AnalyticsService {
 
   /**
    * Get breakdown by platform.
+   * @param period - "7d", "30d", or "90d"
    */
-  async getPlatforms(linkId: string): Promise<PlatformStats[]> {
+  async getPlatforms(linkId: string, period: '7d' | '30d' | '90d' = '7d'): Promise<PlatformStats[]> {
     return new Promise((resolve, reject) => {
       this.client.getPlatforms(
-        { linkId },
+        { linkId, period },
         (err: grpc.ServiceError | null, response: any) => {
           if (err) {
             reject(wrapError(err));
@@ -144,11 +146,13 @@ export class AnalyticsService {
 
   /**
    * Get breakdown by country.
+   * @param period - "7d", "30d", or "90d"
+   * @param limit - Max number of results (default 10)
    */
-  async getCountries(linkId: string): Promise<CountryStats[]> {
+  async getCountries(linkId: string, period: '7d' | '30d' | '90d' = '7d', limit: number = 10): Promise<CountryStats[]> {
     return new Promise((resolve, reject) => {
       this.client.getCountries(
-        { linkId },
+        { linkId, period, limit },
         (err: grpc.ServiceError | null, response: any) => {
           if (err) {
             reject(wrapError(err));
@@ -169,11 +173,13 @@ export class AnalyticsService {
 
   /**
    * Get top referrers.
+   * @param period - "7d", "30d", or "90d"
+   * @param limit - Max number of results (default 10)
    */
-  async getReferrers(linkId: string): Promise<ReferrerStats[]> {
+  async getReferrers(linkId: string, period: '7d' | '30d' | '90d' = '7d', limit: number = 10): Promise<ReferrerStats[]> {
     return new Promise((resolve, reject) => {
       this.client.getReferrers(
-        { linkId },
+        { linkId, period, limit },
         (err: grpc.ServiceError | null, response: any) => {
           if (err) {
             reject(wrapError(err));

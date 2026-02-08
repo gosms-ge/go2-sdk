@@ -1,7 +1,7 @@
 # Go2 SDK for Go
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/gosms-ge/go2-sdk/go.svg)](https://pkg.go.dev/github.com/gosms-ge/go2-sdk/go)
-[![Go 1.21+](https://img.shields.io/badge/go-1.21+-00ADD8.svg)](https://go.dev/)
+[![Go 1.22+](https://img.shields.io/badge/go-1.22+-00ADD8.svg)](https://go.dev/)
 
 Official Go SDK for the [Go2](https://go2.ge) gRPC API - Smart App Links Platform.
 
@@ -246,7 +246,7 @@ Full API documentation: **https://app.go2.ge/docs#sdks**
 
 ## Requirements
 
-- Go 1.21+
+- Go 1.22+
 
 ## License
 

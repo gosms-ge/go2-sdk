@@ -101,7 +101,7 @@ Full API documentation: **https://app.go2.ge/docs**
 
 ### Prerequisites
 
-- Go 1.21+
+- Go 1.22+
 - Python 3.8+
 - Node.js 18+
 - protoc (Protocol Buffers compiler)

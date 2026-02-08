@@ -1,6 +1,6 @@
 {
   "name": "@go2ge/sdk",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "Official TypeScript/Node.js SDK for the Go2 gRPC API",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

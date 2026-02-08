@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "go2-sdk"
-version = "1.2.4"
+version = "1.2.5"
 description = "Official Python SDK for the Go2 gRPC API"
 readme = "README.md"
 license = {text = "MIT"}
@@ -50,3 +50,11 @@ include = ["go2_sdk*"]
 [tool.mypy]
 python_version = "3.8"
 strict = true
+
+[tool.ruff]
+exclude = [
+    "go2_sdk/gen/*",
+]
+
+[tool.ruff.lint]
+ignore = ["E402", "F401"]

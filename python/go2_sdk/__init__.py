@@ -47,7 +47,7 @@ from go2_sdk.errors import (
     RateLimitError,
 )
 
-__version__ = "1.2.4"
+__version__ = "1.2.5"
 __all__ = [
     "Go2Client",
     "IntegrationsService",

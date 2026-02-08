@@ -1,6 +1,9 @@
 # Go2 SDK for Node.js/TypeScript
 
-Official TypeScript/Node.js SDK for the Go2 gRPC API.
+[![npm version](https://badge.fury.io/js/@go2ge%2Fsdk.svg)](https://www.npmjs.com/package/@go2ge/sdk)
+[![Node.js 16+](https://img.shields.io/badge/node-16+-green.svg)](https://nodejs.org/)
+
+Official TypeScript/Node.js SDK for the [Go2](https://go2.ge) gRPC API - Smart App Links Platform.
 
 ## Installation
 
@@ -15,62 +18,167 @@ pnpm add @go2ge/sdk
 ## Quick Start
 
 ```typescript
-import { Go2Client, IntegrationType } from '@go2ge/sdk';
+import { Go2Client } from '@go2ge/sdk';
 
 const client = new Go2Client({ apiKey: 'go2_your_api_key' });
 
 try {
-  // List integrations
-  const integrations = await client.integrations.list();
+  // Create a smart link
+  const link = await client.links.create({
+    slug: 'myapp',
+    title: 'My Awesome App',
+    iosUrl: 'https://apps.apple.com/app/id123456',
+    androidUrl: 'https://play.google.com/store/apps/details?id=com.myapp',
+    webUrl: 'https://myapp.com',
+  });
+  console.log(`Created: https://go2.ge/${link.slug}`);
 
-  for (const integration of integrations) {
-    console.log(`Integration: ${integration.name} (${integration.type})`);
-  }
+  // Get analytics
+  const stats = await client.analytics.getStats(link.id, '7d');
+  console.log(`Total clicks: ${stats.totalClicks}`);
 } finally {
   client.close();
 }
 ```
 
-## Creating an Integration
+## Available Services
+
+### Links
+
+Create and manage smart links that redirect users to the right app store.
 
 ```typescript
-import { Go2Client, IntegrationType } from '@go2ge/sdk';
+// List all links
+const { links, total } = await client.links.list({ page: 1, perPage: 20 });
 
-const client = new Go2Client({ apiKey: 'go2_xxx' });
+// Create a link
+const link = await client.links.create({
+  slug: 'myapp',
+  title: 'My App',
+  iosUrl: 'https://apps.apple.com/...',
+  androidUrl: 'https://play.google.com/...',
+  webUrl: 'https://myapp.com',
+  fallbackUrl: 'https://myapp.com/download',
+});
 
+// Get a link
+const link = await client.links.get('link-id');
+
+// Update a link
+const updated = await client.links.update('link-id', {
+  title: 'New Title',
+  isActive: false,
+});
+
+// Delete a link
+await client.links.delete('link-id');
+```
+
+### Analytics
+
+Access detailed click analytics for your links.
+
+```typescript
+// Get overview stats
+const stats = await client.analytics.getStats('link-id', '30d');
+
+// Get timeseries data
+const timeseries = await client.analytics.getTimeseries('link-id', '7d');
+
+// Get platform breakdown
+const platforms = await client.analytics.getPlatforms('link-id', '30d');
+
+// Get country breakdown
+const countries = await client.analytics.getCountries('link-id', '30d', 10);
+
+// Get referrer breakdown
+const referrers = await client.analytics.getReferrers('link-id', '30d', 10);
+```
+
+### Domains
+
+Add and manage custom domains.
+
+```typescript
+// List domains
+const domains = await client.domains.list();
+
+// Add a domain
+const domain = await client.domains.create('links.myapp.com');
+
+// Verify a domain
+const verified = await client.domains.verify('domain-id');
+
+// Delete a domain
+await client.domains.delete('domain-id');
+```
+
+### QR Codes
+
+Generate customizable QR codes for your links.
+
+```typescript
+const qr = await client.qr.generate({
+  linkId: 'link-id',
+  size: 512,
+  format: 'png',
+  foregroundColor: '#000000',
+  backgroundColor: '#FFFFFF',
+});
+console.log(`QR Code URL: ${qr.url}`);
+```
+
+### Integrations
+
+Connect with third-party services (Slack, Discord, Telegram, etc.).
+
+```typescript
+import { IntegrationType } from '@go2ge/sdk';
+
+// List integrations
+const integrations = await client.integrations.list();
+
+// Create an integration
 const integration = await client.integrations.create({
   type: IntegrationType.SLACK,
-  name: 'My Slack Alerts',
-  config: {
-    webhookUrl: 'https://hooks.slack.com/services/...',
-  },
-  events: ['click_alert', 'link_created'],
+  name: 'Marketing Alerts',
+  config: { webhookUrl: 'https://hooks.slack.com/...' },
+  events: ['click_alert', 'click_milestone'],
 });
 
-console.log(`Created integration: ${integration.id}`);
-
-client.close();
-```
-
-## Updating an Integration
-
-```typescript
-const updated = await client.integrations.update('integration-id', {
-  name: 'Updated Name',
-  isActive: true,
-});
-```
-
-## Testing an Integration
-
-```typescript
+// Test an integration
 const result = await client.integrations.test('integration-id');
 
-if (result.success) {
-  console.log('Test notification sent successfully!');
-} else {
-  console.log(`Test failed: ${result.message}`);
-}
+// Delete an integration
+await client.integrations.delete('integration-id');
+```
+
+### Campaigns
+
+Create SMS/Email marketing campaigns with bulk trackable links.
+
+```typescript
+// Create a campaign
+const campaign = await client.campaigns.create({
+  name: 'Summer Sale 2024',
+  baseLinkId: 'link-id',
+  type: 'sms',
+  utmSource: 'sms',
+  utmCampaign: 'summer_sale',
+});
+
+// Generate unique links for recipients
+const result = await client.campaigns.generateLinks(campaign.id, [
+  { identifier: '+1234567890', metadata: { name: 'John' } },
+  { identifier: '+0987654321', metadata: { name: 'Jane' } },
+]);
+
+// Get campaign stats
+const stats = await client.campaigns.getStats(campaign.id);
+console.log(`Click rate: ${stats.clickRate}%`);
+
+// Export links
+const exportData = await client.campaigns.exportLinks(campaign.id, 'csv');
 ```
 
 ## Error Handling
@@ -78,29 +186,36 @@ if (result.success) {
 ```typescript
 import {
   Go2Client,
+  Go2Error,
   NotFoundError,
   AuthenticationError,
   ValidationError,
+  RateLimitError,
 } from '@go2ge/sdk';
 
 try {
-  const integration = await client.integrations.get('invalid-id');
+  const link = await client.links.get('invalid-id');
 } catch (error) {
   if (error instanceof NotFoundError) {
-    console.log('Integration not found');
+    console.log('Link not found');
   } else if (error instanceof AuthenticationError) {
     console.log('Invalid API key');
   } else if (error instanceof ValidationError) {
     console.log(`Validation error: ${error.message}`);
-  } else {
-    console.error('Error:', error);
+  } else if (error instanceof RateLimitError) {
+    console.log('Rate limit exceeded, try again later');
+  } else if (error instanceof Go2Error) {
+    console.log(`API error: ${error.message}`);
   }
 }
 ```
 
-## Configuration Options
+## Configuration
 
 ```typescript
+// Production (default)
+const client = new Go2Client({ apiKey: 'go2_xxx' });
+
 // Custom endpoint (for development)
 const client = new Go2Client({
   apiKey: 'go2_xxx',
@@ -109,31 +224,24 @@ const client = new Go2Client({
 });
 ```
 
-## Available Integration Types
-
-```typescript
-enum IntegrationType {
-  UNSPECIFIED = 0,
-  SLACK = 1,
-  DISCORD = 2,
-  TELEGRAM = 3,
-  SEGMENT = 4,
-  ZAPIER = 5,
-}
-```
-
 ## TypeScript Support
 
-This SDK is written in TypeScript and provides full type definitions out of the box.
+This SDK is written in TypeScript and provides full type definitions.
 
 ```typescript
 import type {
+  Link,
+  LinkStats,
+  Campaign,
   Integration,
-  IntegrationConfig,
-  CreateIntegrationParams,
-  UpdateIntegrationParams,
+  Domain,
+  QRCode,
 } from '@go2ge/sdk';
 ```
+
+## Documentation
+
+Full API documentation: **https://app.go2.ge/docs#sdks**
 
 ## Requirements
 

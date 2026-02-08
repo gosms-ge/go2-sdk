@@ -4,6 +4,7 @@ import { LinksService } from './links';
 import { AnalyticsService } from './analytics';
 import { DomainsService } from './domains';
 import { QRService } from './qr';
+import { CampaignsService } from './campaigns';
 
 const DEFAULT_ENDPOINT = 'grpc.go2.ge:443';
 
@@ -79,6 +80,9 @@ export class Go2Client {
   /** Service for QR code generation */
   public readonly qr: QRService;
 
+  /** Service for managing marketing campaigns */
+  public readonly campaigns: CampaignsService;
+
   constructor(options: Go2ClientOptions) {
     if (!options.apiKey) {
       throw new Error('API key is required');
@@ -126,6 +130,12 @@ export class Go2Client {
       this.credentials,
       this.channelOptions
     );
+
+    this.campaigns = new CampaignsService(
+      this.endpoint,
+      this.credentials,
+      this.channelOptions
+    );
   }
 
   /**
@@ -137,5 +147,6 @@ export class Go2Client {
     this.integrations.close();
     this.domains.close();
     this.qr.close();
+    this.campaigns.close();
   }
 }

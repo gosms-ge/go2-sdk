@@ -33,6 +33,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	analyticsv1 "github.com/gosms-ge/go2-sdk/go/analytics/v1"
+	campaignsv1 "github.com/gosms-ge/go2-sdk/go/campaigns/v1"
 	domainsv1 "github.com/gosms-ge/go2-sdk/go/domains/v1"
 	integrationsv1 "github.com/gosms-ge/go2-sdk/go/integrations/v1"
 	linksv1 "github.com/gosms-ge/go2-sdk/go/links/v1"
@@ -62,6 +63,9 @@ type Client struct {
 
 	// QR provides access to the QRService for QR code generation.
 	QR *QRClient
+
+	// Campaigns provides access to the CampaignService for marketing campaigns.
+	Campaigns *CampaignsClient
 }
 
 // NewClient creates a new Go2 API client with the given options.
@@ -107,6 +111,7 @@ func NewClient(opts ...Option) (*Client, error) {
 		Integrations: newIntegrationsClient(integrationsv1.NewIntegrationServiceClient(conn)),
 		Domains:      newDomainsClient(domainsv1.NewDomainServiceClient(conn)),
 		QR:           newQRClient(qrv1.NewQRServiceClient(conn)),
+		Campaigns:    newCampaignsClient(campaignsv1.NewCampaignServiceClient(conn)),
 	}, nil
 }
 
@@ -370,6 +375,107 @@ func newQRClient(client qrv1.QRServiceClient) *QRClient {
 // Generate creates a QR code for a link.
 func (c *QRClient) Generate(ctx context.Context, req *qrv1.GenerateQRRequest) (*qrv1.GenerateQRResponse, error) {
 	resp, err := c.client.GenerateQR(ctx, req)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// CampaignsClient provides methods for managing marketing campaigns.
+type CampaignsClient struct {
+	client campaignsv1.CampaignServiceClient
+}
+
+func newCampaignsClient(client campaignsv1.CampaignServiceClient) *CampaignsClient {
+	return &CampaignsClient{client: client}
+}
+
+// List returns all campaigns for the authenticated user.
+func (c *CampaignsClient) List(ctx context.Context, limit, offset int32, status, search string) (*campaignsv1.ListCampaignsResponse, error) {
+	resp, err := c.client.ListCampaigns(ctx, &campaignsv1.ListCampaignsRequest{
+		Limit:  limit,
+		Offset: offset,
+		Status: status,
+		Search: search,
+	})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// Create creates a new campaign.
+func (c *CampaignsClient) Create(ctx context.Context, req *campaignsv1.CreateCampaignRequest) (*campaignsv1.Campaign, error) {
+	resp, err := c.client.CreateCampaign(ctx, req)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// Get returns a campaign by ID.
+func (c *CampaignsClient) Get(ctx context.Context, id string) (*campaignsv1.Campaign, error) {
+	resp, err := c.client.GetCampaign(ctx, &campaignsv1.GetCampaignRequest{Id: id})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// Update updates a campaign.
+func (c *CampaignsClient) Update(ctx context.Context, req *campaignsv1.UpdateCampaignRequest) (*campaignsv1.Campaign, error) {
+	resp, err := c.client.UpdateCampaign(ctx, req)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// Delete deletes a campaign.
+func (c *CampaignsClient) Delete(ctx context.Context, id string) error {
+	_, err := c.client.DeleteCampaign(ctx, &campaignsv1.DeleteCampaignRequest{Id: id})
+	if err != nil {
+		return wrapError(err)
+	}
+	return nil
+}
+
+// GenerateLinks generates links for campaign recipients in bulk.
+func (c *CampaignsClient) GenerateLinks(ctx context.Context, req *campaignsv1.GenerateLinksRequest) (*campaignsv1.GenerateLinksResponse, error) {
+	resp, err := c.client.GenerateLinks(ctx, req)
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// ListLinks returns campaign links with pagination.
+func (c *CampaignsClient) ListLinks(ctx context.Context, campaignID string, limit, offset int32, clickedOnly bool, search string) (*campaignsv1.ListCampaignLinksResponse, error) {
+	resp, err := c.client.ListCampaignLinks(ctx, &campaignsv1.ListCampaignLinksRequest{
+		CampaignId:  campaignID,
+		Limit:       limit,
+		Offset:      offset,
+		ClickedOnly: clickedOnly,
+		Search:      search,
+	})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// GetStats returns campaign statistics.
+func (c *CampaignsClient) GetStats(ctx context.Context, campaignID string) (*campaignsv1.CampaignStats, error) {
+	resp, err := c.client.GetCampaignStats(ctx, &campaignsv1.GetCampaignStatsRequest{CampaignId: campaignID})
+	if err != nil {
+		return nil, wrapError(err)
+	}
+	return resp, nil
+}
+
+// ExportLinks exports all campaign links.
+func (c *CampaignsClient) ExportLinks(ctx context.Context, campaignID string) (*campaignsv1.ExportLinksResponse, error) {
+	resp, err := c.client.ExportLinks(ctx, &campaignsv1.ExportLinksRequest{CampaignId: campaignID, Format: "json"})
 	if err != nil {
 		return nil, wrapError(err)
 	}

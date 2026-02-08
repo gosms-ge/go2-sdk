@@ -12,9 +12,10 @@ mkdir -p "$ROOT_DIR/go/links/v1"
 mkdir -p "$ROOT_DIR/go/analytics/v1"
 mkdir -p "$ROOT_DIR/go/domains/v1"
 mkdir -p "$ROOT_DIR/go/qr/v1"
+mkdir -p "$ROOT_DIR/go/campaigns/v1"
 
 # Generate Go code for all services
-for service in integrations links analytics domains qr; do
+for service in integrations links analytics domains qr campaigns; do
     echo "Generating $service..."
     protoc \
         --proto_path="$ROOT_DIR/proto" \

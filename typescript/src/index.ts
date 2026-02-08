@@ -36,6 +36,16 @@ export { AnalyticsService, Stats, TimeseriesPoint, PlatformStats, CountryStats, 
 export { IntegrationsService } from './integrations';
 export { DomainsService, Domain, DomainStatus, SSLStatus, DNSRecord, CreateDomainResponse } from './domains';
 export { QRService, QRCode, GenerateQRParams } from './qr';
+export {
+  CampaignsService,
+  Campaign,
+  CampaignLink,
+  Recipient,
+  CreateCampaignParams,
+  UpdateCampaignParams,
+  GenerateLinksResult,
+  CampaignStats,
+} from './campaigns';
 
 // Errors
 export {

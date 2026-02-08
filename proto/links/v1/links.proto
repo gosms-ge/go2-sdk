@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package links.v1;
+
+option go_package = "github.com/gosms-ge/go2-sdk/go/links/v1;linksv1";
+
+import "google/protobuf/timestamp.proto";
+
+// LinkService handles smart link management
+service LinkService {
+  // List all links for the authenticated user
+  rpc ListLinks(ListLinksRequest) returns (ListLinksResponse);
+
+  // Create a new smart link
+  rpc CreateLink(CreateLinkRequest) returns (Link);
+
+  // Get a specific link by ID
+  rpc GetLink(GetLinkRequest) returns (Link);
+
+  // Update an existing link
+  rpc UpdateLink(UpdateLinkRequest) returns (Link);
+
+  // Delete a link
+  rpc DeleteLink(DeleteLinkRequest) returns (DeleteLinkResponse);
+
+  // Check if a slug is available
+  rpc CheckSlug(CheckSlugRequest) returns (CheckSlugResponse);
+}
+
+// Link represents a smart link
+message Link {
+  string id = 1;
+  string user_id = 2;
+  string slug = 3;
+  string title = 4;
+  string ios_url = 5;
+  string android_url = 6;
+  string web_url = 7;
+  string fallback_url = 8;
+  string huawei_url = 9;
+  string amazon_url = 10;
+  string windows_url = 11;
+  string macos_url = 12;
+  string app_name = 13;
+  string app_icon_url = 14;
+  string description = 15;
+  bool is_active = 16;
+  int64 total_clicks = 17;
+  google.protobuf.Timestamp created_at = 18;
+  google.protobuf.Timestamp updated_at = 19;
+}
+
+// List links
+message ListLinksRequest {
+  int32 page = 1;
+  int32 per_page = 2;
+}
+
+message ListLinksResponse {
+  repeated Link links = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 per_page = 4;
+}
+
+// Create link
+message CreateLinkRequest {
+  string slug = 1;
+  string title = 2;
+  string ios_url = 3;
+  string android_url = 4;
+  string web_url = 5;
+  string fallback_url = 6;
+  string huawei_url = 7;
+  string amazon_url = 8;
+  string windows_url = 9;
+  string macos_url = 10;
+  string app_name = 11;
+  string app_icon_url = 12;
+  string description = 13;
+}
+
+// Get link
+message GetLinkRequest {
+  string id = 1;
+}
+
+// Update link
+message UpdateLinkRequest {
+  string id = 1;
+  optional string slug = 2;
+  optional string title = 3;
+  optional string ios_url = 4;
+  optional string android_url = 5;
+  optional string web_url = 6;
+  optional string fallback_url = 7;
+  optional bool is_active = 8;
+}
+
+// Delete link
+message DeleteLinkRequest {
+  string id = 1;
+}
+
+message DeleteLinkResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Check slug
+message CheckSlugRequest {
+  string slug = 1;
+}
+
+message CheckSlugResponse {
+  bool available = 1;
+  string slug = 2;
+}

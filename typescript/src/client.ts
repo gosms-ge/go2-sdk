@@ -1,5 +1,9 @@
 import * as grpc from '@grpc/grpc-js';
 import { IntegrationsService } from './integrations';
+import { LinksService } from './links';
+import { AnalyticsService } from './analytics';
+import { DomainsService } from './domains';
+import { QRService } from './qr';
 
 const DEFAULT_ENDPOINT = 'grpc.go2.ge:443';
 
@@ -36,42 +40,91 @@ function createAuthInterceptor(apiKey: string): grpc.Interceptor {
  * ```typescript
  * const client = new Go2Client({ apiKey: 'go2_xxx' });
  *
- * try {
- *   const integrations = await client.integrations.list();
- *   console.log(integrations);
- * } finally {
- *   client.close();
- * }
+ * // Links
+ * const links = await client.links.list();
+ * const link = await client.links.create({ slug: 'myapp', title: 'My App' });
+ *
+ * // Analytics
+ * const stats = await client.analytics.getStats(link.id);
+ *
+ * // Integrations
+ * const integrations = await client.integrations.list();
+ *
+ * // Domains
+ * const domains = await client.domains.list();
+ *
+ * // QR Codes
+ * const qr = await client.qr.generate({ linkId: link.id });
+ *
+ * client.close();
  * ```
  */
 export class Go2Client {
-  private channel: grpc.Channel | null = null;
+  private endpoint: string;
+  private credentials: grpc.ChannelCredentials;
+  private channelOptions: grpc.ClientOptions;
+
+  /** Service for managing smart links */
+  public readonly links: LinksService;
+
+  /** Service for link analytics */
+  public readonly analytics: AnalyticsService;
 
   /** Service for managing integrations */
   public readonly integrations: IntegrationsService;
+
+  /** Service for managing custom domains */
+  public readonly domains: DomainsService;
+
+  /** Service for QR code generation */
+  public readonly qr: QRService;
 
   constructor(options: Go2ClientOptions) {
     if (!options.apiKey) {
       throw new Error('API key is required');
     }
 
-    const endpoint = options.endpoint || DEFAULT_ENDPOINT;
+    this.endpoint = options.endpoint || DEFAULT_ENDPOINT;
 
     // Create credentials
-    const credentials = options.insecure
+    this.credentials = options.insecure
       ? grpc.credentials.createInsecure()
       : grpc.credentials.createSsl();
 
     // Create channel options with interceptors
-    const channelOptions: grpc.ClientOptions = {
+    this.channelOptions = {
       interceptors: [createAuthInterceptor(options.apiKey)],
     };
 
     // Create service clients
+    this.links = new LinksService(
+      this.endpoint,
+      this.credentials,
+      this.channelOptions
+    );
+
+    this.analytics = new AnalyticsService(
+      this.endpoint,
+      this.credentials,
+      this.channelOptions
+    );
+
     this.integrations = new IntegrationsService(
-      endpoint,
-      credentials,
-      channelOptions
+      this.endpoint,
+      this.credentials,
+      this.channelOptions
+    );
+
+    this.domains = new DomainsService(
+      this.endpoint,
+      this.credentials,
+      this.channelOptions
+    );
+
+    this.qr = new QRService(
+      this.endpoint,
+      this.credentials,
+      this.channelOptions
     );
   }
 
@@ -79,6 +132,10 @@ export class Go2Client {
    * Close the client connection.
    */
   close(): void {
+    this.links.close();
+    this.analytics.close();
     this.integrations.close();
+    this.domains.close();
+    this.qr.close();
   }
 }

@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package domains.v1;
+
+option go_package = "github.com/gosms-ge/go2-sdk/go/domains/v1;domainsv1";
+
+import "google/protobuf/timestamp.proto";
+
+// DomainService handles custom domain management
+service DomainService {
+  // List all custom domains
+  rpc ListDomains(ListDomainsRequest) returns (ListDomainsResponse);
+
+  // Add a new custom domain
+  rpc CreateDomain(CreateDomainRequest) returns (CreateDomainResponse);
+
+  // Get a specific domain
+  rpc GetDomain(GetDomainRequest) returns (Domain);
+
+  // Verify a domain
+  rpc VerifyDomain(VerifyDomainRequest) returns (Domain);
+
+  // Delete a domain
+  rpc DeleteDomain(DeleteDomainRequest) returns (DeleteDomainResponse);
+}
+
+// Domain status
+enum DomainStatus {
+  DOMAIN_STATUS_UNSPECIFIED = 0;
+  DOMAIN_STATUS_PENDING = 1;
+  DOMAIN_STATUS_VERIFYING = 2;
+  DOMAIN_STATUS_ACTIVE = 3;
+  DOMAIN_STATUS_FAILED = 4;
+}
+
+// SSL status
+enum SSLStatus {
+  SSL_STATUS_UNSPECIFIED = 0;
+  SSL_STATUS_PENDING = 1;
+  SSL_STATUS_PROVISIONING = 2;
+  SSL_STATUS_ACTIVE = 3;
+  SSL_STATUS_FAILED = 4;
+}
+
+// Domain represents a custom domain
+message Domain {
+  string id = 1;
+  string user_id = 2;
+  string domain = 3;
+  DomainStatus status = 4;
+  string verification_token = 5;
+  optional google.protobuf.Timestamp verified_at = 6;
+  SSLStatus ssl_status = 7;
+  string cloudflare_hostname_id = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+// DNS record for domain setup
+message DNSRecord {
+  string type = 1;
+  string name = 2;
+  string value = 3;
+}
+
+// List domains
+message ListDomainsRequest {}
+
+message ListDomainsResponse {
+  repeated Domain domains = 1;
+}
+
+// Create domain
+message CreateDomainRequest {
+  string domain = 1;
+}
+
+message CreateDomainResponse {
+  Domain domain = 1;
+  repeated DNSRecord dns_records = 2;
+}
+
+// Get domain
+message GetDomainRequest {
+  string id = 1;
+}
+
+// Verify domain
+message VerifyDomainRequest {
+  string id = 1;
+}
+
+// Delete domain
+message DeleteDomainRequest {
+  string id = 1;
+}
+
+message DeleteDomainResponse {
+  bool success = 1;
+  string message = 2;
+}

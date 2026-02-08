@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package qr.v1;
+
+option go_package = "github.com/gosms-ge/go2-sdk/go/qr/v1;qrv1";
+
+// QRService handles QR code generation
+service QRService {
+  // Generate a QR code for a link
+  rpc GenerateQR(GenerateQRRequest) returns (GenerateQRResponse);
+}
+
+// Generate QR
+message GenerateQRRequest {
+  string link_id = 1;
+  int32 size = 2; // 128, 256, 512, 1024
+  string format = 3; // png, svg
+  string foreground_color = 4; // hex color
+  string background_color = 5; // hex color
+  string logo_url = 6; // optional logo overlay
+}
+
+message GenerateQRResponse {
+  string url = 1;
+  int32 size = 2;
+  string format = 3;
+}

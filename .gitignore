@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# Generated proto files (regenerate with scripts)
+go/gen/
+python/go2_sdk/gen/integrations/v1/*.py
+python/go2_sdk/gen/integrations/v1/*.pyi
+typescript/src/gen/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Test
+coverage/
+.coverage
+htmlcov/
+
+# Environment
+.env
+.env.local

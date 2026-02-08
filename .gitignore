@@ -10,11 +10,12 @@ dist/
 build/
 *.egg-info/
 
-# Generated proto files (regenerate with scripts)
-go/gen/
+# Generated proto files for Python (regenerate with scripts)
 python/go2_sdk/gen/integrations/v1/*.py
 python/go2_sdk/gen/integrations/v1/*.pyi
-typescript/src/gen/
+
+# Note: Go generated files (go/integrations/) are committed to the repo
+# TypeScript uses proto-loader, no generated files needed
 
 # IDE
 .idea/

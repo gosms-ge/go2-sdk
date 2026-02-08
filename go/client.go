@@ -20,7 +20,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	integrationsv1 "github.com/go2-link/sdk-go/gen/integrations/v1"
+	integrationsv1 "github.com/gosms-ge/go2-sdk/go/integrations/v1"
 )
 
 const (

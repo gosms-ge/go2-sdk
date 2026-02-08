@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "go2-sdk"
-version = "1.2.1"
+version = "1.2.2"
 description = "Official Python SDK for the Go2 gRPC API"
 readme = "README.md"
 license = {text = "MIT"}
@@ -32,7 +32,7 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://go2.ge"
-Documentation = "https://developers.go2.ge"
+Documentation = "https://app.go2.ge/docs#sdks"
 Repository = "https://github.com/go2-link/sdk"
 
 [project.optional-dependencies]

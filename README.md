@@ -8,7 +8,7 @@ Official SDKs for the Go2 gRPC API.
 |----------|---------|--------------|
 | **Go** | `github.com/gosms-ge/go2-sdk/go` | `go get github.com/gosms-ge/go2-sdk/go` |
 | **Python** | `go2-sdk` | `pip install go2-sdk` |
-| **TypeScript/Node.js** | `@go2/sdk` | `npm install @go2/sdk` |
+| **TypeScript/Node.js** | `@go2ge/sdk` | `npm install @go2ge/sdk` |
 
 ## Quick Examples
 

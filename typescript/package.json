@@ -1,5 +1,5 @@
 {
-  "name": "@go2/sdk",
+  "name": "@go2ge/sdk",
   "version": "1.0.0",
   "description": "Official TypeScript/Node.js SDK for the Go2 gRPC API",
   "main": "dist/index.js",

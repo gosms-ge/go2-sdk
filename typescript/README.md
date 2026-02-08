@@ -5,17 +5,17 @@ Official TypeScript/Node.js SDK for the Go2 gRPC API.
 ## Installation
 
 ```bash
-npm install @go2/sdk
+npm install @go2ge/sdk
 # or
-yarn add @go2/sdk
+yarn add @go2ge/sdk
 # or
-pnpm add @go2/sdk
+pnpm add @go2ge/sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { Go2Client, IntegrationType } from '@go2/sdk';
+import { Go2Client, IntegrationType } from '@go2ge/sdk';
 
 const client = new Go2Client({ apiKey: 'go2_your_api_key' });
 
@@ -34,7 +34,7 @@ try {
 ## Creating an Integration
 
 ```typescript
-import { Go2Client, IntegrationType } from '@go2/sdk';
+import { Go2Client, IntegrationType } from '@go2ge/sdk';
 
 const client = new Go2Client({ apiKey: 'go2_xxx' });
 
@@ -81,7 +81,7 @@ import {
   NotFoundError,
   AuthenticationError,
   ValidationError,
-} from '@go2/sdk';
+} from '@go2ge/sdk';
 
 try {
   const integration = await client.integrations.get('invalid-id');
@@ -132,7 +132,7 @@ import type {
   IntegrationConfig,
   CreateIntegrationParams,
   UpdateIntegrationParams,
-} from '@go2/sdk';
+} from '@go2ge/sdk';
 ```
 
 ## Requirements

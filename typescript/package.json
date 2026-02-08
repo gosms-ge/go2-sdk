@@ -35,7 +35,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/go2-link/sdk"
+    "url": "https://github.com/gosms-ge/go2-sdk"
   },
   "homepage": "https://developers.go2.ge",
   "engines": {

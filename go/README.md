@@ -5,7 +5,7 @@ Official Go SDK for the Go2 gRPC API.
 ## Installation
 
 ```bash
-go get github.com/go2-link/sdk-go
+go get github.com/gosms-ge/go2-sdk/go
 ```
 
 ## Quick Start
@@ -18,7 +18,7 @@ import (
     "fmt"
     "log"
 
-    go2 "github.com/go2-link/sdk-go"
+    go2 "github.com/gosms-ge/go2-sdk/go"
 )
 
 func main() {

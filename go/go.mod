@@ -1,4 +1,4 @@
-module github.com/go2-link/sdk-go
+module github.com/gosms-ge/go2-sdk/go
 
 go 1.21
 

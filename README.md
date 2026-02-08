@@ -6,7 +6,7 @@ Official SDKs for the Go2 gRPC API.
 
 | Language | Package | Installation |
 |----------|---------|--------------|
-| **Go** | `github.com/go2-link/sdk-go` | `go get github.com/go2-link/sdk-go` |
+| **Go** | `github.com/gosms-ge/go2-sdk/go` | `go get github.com/gosms-ge/go2-sdk/go` |
 | **Python** | `go2-sdk` | `pip install go2-sdk` |
 | **TypeScript/Node.js** | `@go2/sdk` | `npm install @go2/sdk` |
 
@@ -121,7 +121,7 @@ go2-sdk/
 ## Support
 
 - Documentation: https://docs.go2.ge
-- Issues: https://github.com/go2-link/sdk/issues
+- Issues: https://github.com/gosms-ge/go2-sdk/issues
 
 ## License
 

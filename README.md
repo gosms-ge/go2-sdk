@@ -1,16 +1,21 @@
 # Go2 SDK
 
-Official SDKs for the Go2 gRPC API.
+[![Go Reference](https://pkg.go.dev/badge/github.com/gosms-ge/go2-sdk/go.svg)](https://pkg.go.dev/github.com/gosms-ge/go2-sdk/go)
+[![PyPI version](https://badge.fury.io/py/go2-sdk.svg)](https://pypi.org/project/go2-sdk/)
+[![npm version](https://badge.fury.io/js/@go2ge%2Fsdk.svg)](https://www.npmjs.com/package/@go2ge/sdk)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+Official SDKs for the [Go2](https://go2.ge) gRPC API - Smart App Links Platform.
 
 ## Available SDKs
 
 | Language | Package | Installation |
 |----------|---------|--------------|
-| **Go** | `github.com/gosms-ge/go2-sdk/go` | `go get github.com/gosms-ge/go2-sdk/go` |
-| **Python** | `go2-sdk` | `pip install go2-sdk` |
-| **TypeScript/Node.js** | `@go2ge/sdk` | `npm install @go2ge/sdk` |
+| **Go** | [pkg.go.dev](https://pkg.go.dev/github.com/gosms-ge/go2-sdk/go) | `go get github.com/gosms-ge/go2-sdk/go` |
+| **Python** | [PyPI](https://pypi.org/project/go2-sdk/) | `pip install go2-sdk` |
+| **TypeScript** | [npm](https://www.npmjs.com/package/@go2ge/sdk) | `npm install @go2ge/sdk` |
 
-## Quick Examples
+## Quick Start
 
 ### Go
 
@@ -18,54 +23,79 @@ Official SDKs for the Go2 gRPC API.
 client, _ := go2.NewClient(go2.WithAPIKey("go2_xxx"))
 defer client.Close()
 
-integrations, _ := client.Integrations.List(ctx)
+// Create a smart link
+link, _ := client.Links.Create(ctx, &linksv1.CreateLinkRequest{
+    Slug:       "myapp",
+    IosUrl:     "https://apps.apple.com/app/id123",
+    AndroidUrl: "https://play.google.com/store/apps/details?id=com.myapp",
+})
+
+// Get analytics
+stats, _ := client.Analytics.GetStats(ctx, link.Id, "7d")
 ```
 
 ### Python
 
 ```python
 with Go2Client(api_key="go2_xxx") as client:
-    integrations = client.integrations.list()
+    # Create a smart link
+    link = client.links.create(
+        slug="myapp",
+        ios_url="https://apps.apple.com/app/id123",
+        android_url="https://play.google.com/store/apps/details?id=com.myapp",
+    )
+
+    # Get analytics
+    stats = client.analytics.get_stats(link.id, period="7d")
 ```
 
 ### TypeScript
 
 ```typescript
 const client = new Go2Client({ apiKey: 'go2_xxx' });
-const integrations = await client.integrations.list();
+
+// Create a smart link
+const link = await client.links.create({
+    slug: 'myapp',
+    iosUrl: 'https://apps.apple.com/app/id123',
+    androidUrl: 'https://play.google.com/store/apps/details?id=com.myapp',
+});
+
+// Get analytics
+const stats = await client.analytics.getStats(link.id, '7d');
+
 client.close();
 ```
 
-## Features
+## Available Services
 
-- **Type-safe** - Full type support in all languages
-- **gRPC** - High-performance binary protocol
-- **Authentication** - Simple API key authentication
-- **Error handling** - Structured error types
+| Service | Description |
+|---------|-------------|
+| **Links** | Create and manage smart app links |
+| **Analytics** | Click analytics, platforms, countries, referrers |
+| **Domains** | Custom domain management |
+| **QR** | Generate customizable QR codes |
+| **Integrations** | Slack, Discord, Telegram, Zapier webhooks |
+| **Campaigns** | SMS/Email marketing with bulk trackable links |
 
-## API Reference
+## gRPC Endpoint
 
-All SDKs provide the following methods:
+```
+grpc.go2.ge:443
+```
 
-### Integrations
+## Proto Files
 
-| Method | Description |
-|--------|-------------|
-| `list()` | List all integrations |
-| `create(params)` | Create a new integration |
-| `get(id)` | Get integration by ID |
-| `update(id, params)` | Update an integration |
-| `delete(id)` | Delete an integration |
-| `test(id)` | Send a test notification |
-| `getTypes()` | Get available integration types |
+- [links.proto](proto/links/v1/links.proto)
+- [analytics.proto](proto/analytics/v1/analytics.proto)
+- [domains.proto](proto/domains/v1/domains.proto)
+- [qr.proto](proto/qr/v1/qr.proto)
+- [integrations.proto](proto/integrations/v1/integrations.proto)
+- [campaigns.proto](proto/campaigns/v1/campaigns.proto)
 
-### Integration Types
+## Documentation
 
-- **Slack** - Webhook notifications
-- **Discord** - Webhook notifications
-- **Telegram** - Bot messages
-- **Segment** - Analytics events
-- **Zapier** - Webhook triggers
+Full API documentation: **https://app.go2.ge/docs**
 
 ## Development
 
@@ -73,7 +103,7 @@ All SDKs provide the following methods:
 
 - Go 1.21+
 - Python 3.8+
-- Node.js 16+
+- Node.js 18+
 - protoc (Protocol Buffers compiler)
 
 ### Generating Proto Code
@@ -88,41 +118,11 @@ All SDKs provide the following methods:
 ./scripts/generate-typescript.sh
 ```
 
-### Project Structure
-
-```
-go2-sdk/
-├── proto/
-│   └── integrations/v1/integrations.proto
-├── scripts/
-│   ├── generate-all.sh
-│   ├── generate-go.sh
-│   ├── generate-python.sh
-│   └── generate-typescript.sh
-├── go/
-│   ├── client.go
-│   ├── auth.go
-│   ├── errors.go
-│   └── gen/
-├── python/
-│   ├── go2_sdk/
-│   │   ├── client.py
-│   │   ├── errors.py
-│   │   └── gen/
-│   └── pyproject.toml
-└── typescript/
-    ├── src/
-    │   ├── client.ts
-    │   ├── errors.ts
-    │   └── gen/
-    └── package.json
-```
-
 ## Support
 
-- Documentation: https://docs.go2.ge
+- Documentation: https://app.go2.ge/docs
 - Issues: https://github.com/gosms-ge/go2-sdk/issues
 
 ## License
 
-MIT
+MIT - see [LICENSE](LICENSE)
